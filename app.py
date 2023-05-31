@@ -1,9 +1,16 @@
 import telebot
+import difflib #поиск похожего значения
+
 from config import keys, TOKEN
 from extensions import ConvertionException, CryptoConverter
 
 bot = telebot.TeleBot(TOKEN)
 
+def find_closest_key(user_input):
+    closest_key = difflib.get_close_matches(user_input, keys.keys(), n=1, cutoff=0.6)
+    if closest_key:
+        return closest_key[0]
+    return None
 
 @bot.message_handler(commands=['start', 'help'])
 def help(message: telebot.types.Message):
@@ -30,6 +37,15 @@ def convert(message: telebot.types.Message):
             raise ConvertionException('Слишком много параметров.')
 
         quote, base, amount = values
+
+        quote = find_closest_key(quote)
+        base = find_closest_key(base)
+
+        if not quote:
+            raise ConvertionException(f'Не удалось обработать валюту {values[0]}')
+        if not base:
+            raise ConvertionException(f'Не удалось обработать валюту {values[1]}')
+
         total_base = CryptoConverter.get_price(quote, base, amount)
     except ConvertionException as e:
         bot.reply_to(message, f'Ошибка пользователя.\n{e}')
