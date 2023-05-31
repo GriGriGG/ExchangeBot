@@ -1,13 +1,13 @@
 import telebot
-import difflib #поиск похожего значения
+import difflib
 
 from config import keys, TOKEN
-from extensions import ConvertionException, CryptoConverter
+from extensions import ConvertionException, Converter
 
 bot = telebot.TeleBot(TOKEN)
 
 def find_closest_key(user_input):
-    closest_key = difflib.get_close_matches(user_input, keys.keys(), n=1, cutoff=0.6)
+    closest_key = difflib.get_close_matches(user_input, keys.keys(), n=1, cutoff=0.6) #поиск соответствия в keys
     if closest_key:
         return closest_key[0]
     return None
@@ -46,13 +46,14 @@ def convert(message: telebot.types.Message):
         if not base:
             raise ConvertionException(f'Не удалось обработать валюту {values[1]}')
 
-        total_base = CryptoConverter.get_price(quote, base, amount)
+        total_base = Converter.get_price(quote, base, amount)
+        total_amount = float(amount) * total_base
     except ConvertionException as e:
         bot.reply_to(message, f'Ошибка пользователя.\n{e}')
     except Exception as e:
         bot.reply_to(message, f'Не удалось обработать команду\n{e}')
     else:
-        text = f'Цена {amount} {quote} в {base} - {total_base}'
+        text = f'Цена {amount} {quote} в {base} - {"%.2f" % total_amount}'
         bot.send_message(message.chat.id, text)
 
 
