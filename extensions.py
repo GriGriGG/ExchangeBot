@@ -6,7 +6,7 @@ from config import keys
 class ConvertionException(Exception):
     pass
 
-class CryptoConverter:
+class Converter:
     @staticmethod
     def get_price(quote: str, base: str, amount: str):
         if quote == base:
